@@ -1,1 +1,2 @@
 geocoder==1.38.1
+skyfield==1.10
