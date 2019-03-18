@@ -1,0 +1,16 @@
+certifi==2019.3.9
+chardet==3.0.4
+Click==7.0
+decorator==4.3.2
+future==0.17.1
+geocoder==1.38.1
+idna==2.8
+jplephem==2.9
+numpy==1.16.2
+PyOngc==0.3.0
+ratelim==0.1.6
+requests==2.21.0
+sgp4==1.4
+six==1.12.0
+skyfield==1.10
+urllib3==1.24.1

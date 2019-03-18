@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from skyfield.api import load, Star, Topos
 
 from geocode import get_location
