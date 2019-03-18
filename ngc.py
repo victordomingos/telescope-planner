@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from pyongc import ongc
 from skyfield.api import load, Star, Topos
 
