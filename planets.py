@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from skyfield.api import load, Star, Topos
+from pytz import timezone
 
 from geocode import get_location
 
@@ -21,7 +22,10 @@ here = earth + Topos(f'{cur_place.latitude} N', f'{cur_place.longitude} E')
 
 print('\n\n\n')
 print(f'{cur_place.city} {cur_place.latitude:.5f}N, {cur_place.longitude:.5f}E\n')
-print(t.utc_datetime(), '\n')
+print('UTC:  ', t.utc_datetime())
+tz = timezone('Europe/Lisbon')
+#tz = timezone('NZ')
+print('Local:', t.astimezone(tz), '\n')
 
 print('\n\nSolar System:')
 print('=============\n')
