@@ -30,7 +30,7 @@ else:
 
 print(f"Detected location using {location_source}.")
 print(f"You're near {here.city} (coords: {here.longitude} {here.latitude}.")
-print("Estimated elevation: {altitude}m.")
+print(f"Estimated elevation: {altitude}m.")
 
 location = Observer(longitude=here.longitude * u.deg,
                     latitude=here.latitude * u.deg,
@@ -43,17 +43,27 @@ print("Is it night at your observatory?", location.is_night(time))
 star_names = ['M' + str(i) for i in range(1, 111)]
 
 
-def show_star_info(obj):
+def get_star_info(obj):
     star = FixedTarget.from_name(obj)
-    print("\n", obj, star)
+    is_up = location.target_is_up(time, star)
+    if not is_up:
+        return None, None, None, is_up
     rise_time = location.target_rise_time(time, star)
-    print('Rise time:', rise_time)
-    #altitude_at_rise = location.altaz(rise_time, star).alt
+    set_time = location.target_set_time(time, star)
+    altitude_at_rise = location.altaz(rise_time, star).alt
     #print('Altitude at rise:', altitude_at_rise.to('arcsec'))
+    return rise_time, set_time, altitude_at_rise, is_up
 
 
 for i, obj in enumerate(star_names):
-    show_star_info(obj)
-    if i > 0 and i % 5 == 0:
+    rise_time, set_time, altitude_at_rise, is_up = get_star_info(obj)
+    if not is_up:
+        continue
+    elif i > 0 and i % 5 == 0:
         print("Pausing...")
         sleep(10)
+    else:
+        print(f"\n{obj}")
+        print("RTime", location.astropy_time_to_datetime(rise_time))
+        print("STime", location.astropy_time_to_datetime(set_time))
+        print("AltRise:", altitude_at_rise.to('arcsec'))
