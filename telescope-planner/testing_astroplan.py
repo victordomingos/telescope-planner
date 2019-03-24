@@ -46,24 +46,42 @@ star_names = ['M' + str(i) for i in range(1, 111)]
 def get_star_info(obj):
     star = FixedTarget.from_name(obj)
     is_up = location.target_is_up(time, star)
+
     if not is_up:
         return None, None, None, is_up
+
     rise_time = location.target_rise_time(time, star)
     set_time = location.target_set_time(time, star)
     altitude_at_rise = location.altaz(rise_time, star).alt
-    #print('Altitude at rise:', altitude_at_rise.to('arcsec'))
     return rise_time, set_time, altitude_at_rise, is_up
 
 
+messier_list = []
+messier_not_visible = []
+messier_error_list = []
 for i, obj in enumerate(star_names):
-    rise_time, set_time, altitude_at_rise, is_up = get_star_info(obj)
-    if not is_up:
-        continue
-    elif i > 0 and i % 5 == 0:
+    if i > 0 and i % 5 == 0:
         print("Pausing...")
         sleep(10)
-    else:
-        print(f"\n{obj}")
-        print("RTime", location.astropy_time_to_datetime(rise_time))
-        print("STime", location.astropy_time_to_datetime(set_time))
-        print("AltRise:", altitude_at_rise.to('arcsec'))
+
+    rtime, stime, alt_at_rise, up = get_star_info(obj)
+    if not up or alt_at_rise < 0:  # TODO: fix this - we need to check if the object will be up during the interval of time, not at current time…
+        messier_not_visible.append(obj)
+        continue
+    print(f"\n{obj}")
+    try:
+        print("RTime", location.astropy_time_to_datetime(rtime))
+        print("STime", location.astropy_time_to_datetime(stime))
+        print("AltRise:", alt_at_rise.to('arcsec'))
+        messier_list.append(obj)
+    except ValueError as ve:
+        messier_error_list.append(obj)
+        print(ve)
+    except Exception as e:
+        messier_error_list.append(obj)
+        print(e)
+
+
+
+print(f"Currently these {len(messier_list)} Messier objects are up in the sky: ")
+print(messier_list)
