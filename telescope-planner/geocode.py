@@ -146,7 +146,6 @@ def get_location():
     try:
         if IS_IOS:
             device_location = get_location_ios()
-            #device_location=DEFAULT_LOCATION
             source = 'network or device data'
         else:
             device_location = get_location_current_ip()
