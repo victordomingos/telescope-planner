@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-from telescope_planner.constants import DEFAULT_LOCATION, NOW
 
+from skyfield import Loader
+
+from telescope_planner.constants import DEFAULT_LOCATION, NOW
+from telescope_planner.settings import DATA_FOLDER
 
 def get_next_sunset(when=NOW):
     pass
@@ -40,13 +43,15 @@ class Session():
         self.objects_visible = []
         self.objects_not_visible = []
         self.objects_not_defined = []
-
+        
+        load = Loader(DATA_FOLDER)
         self.planets = load('de421.bsp')
         self.earth = planets['earth']
+        
         self.update_user_location(self.latitude, self.longitude)
         
-        solar_system = [ PlanetObserver(name, session)
-                         for name in SOLAR_SYSTEM]
+        solar_system = [PlanetObserver(name, session)
+                        for name in SOLAR_SYSTEM]
                          
     
     def check_user_location(self):
