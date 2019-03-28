@@ -41,14 +41,30 @@ class Session():
         self.objects_not_visible = []
         self.objects_not_defined = []
 
-        planets = load('de421.bsp')
-        earth = planets['earth']
-        here = earth + Topos(f'{location.latitude} N', f'{location.longitude} E')
-        solar_system = [ PlanetObserver(name, here, NOW)
+        self.planets = load('de421.bsp')
+        self.earth = planets['earth']
+        self.update_user_location(self.latitude, self.longitude)
+        
+        solar_system = [ PlanetObserver(name, session)
                          for name in SOLAR_SYSTEM]
+                         
+    
+    def check_user_location(self):
+        location, source = get_location()
+        self.update_user_location(location.latitude, location.longitude)
 
-
-
+    def update_user_location(self, latitude: float, longitude: float):
+        self.latitude = latitude
+        self.longitude = longitude
+        self.here = earth + Topos(f'{location.latitude} N', f'{location.longitude} E')
+        # TODO: update anything that depends on the user location
+    
+    
+    def update_objects():
+        """ Update coordinates and other properties for all visible objects """
+        pass
+    
+    
     def __repr__(self):
         super().__repr__()
 

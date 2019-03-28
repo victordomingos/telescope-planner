@@ -11,8 +11,9 @@ class SpaceObserver(ABC):
     observed from a specific location on Earth at a given date/time.
     """
 
-    def __init__(self, object_name, location, time=NOW):
+    def __init__(self, object_name, session):
         self.object_name = object_name
+        self.session = session
 
         self.ra = None
         self.dec = None
@@ -36,14 +37,6 @@ class SpaceObserver(ABC):
     def name(self):
         return self.names[0]
 
-    def check_user_location(self):
-        location, source = get_location()
-        self.update_user_location(location.latitude, location.longitude)
-
-    def update_user_location(self, latitude: float, longitude: float):
-        self.latitude = latitude
-        self.longitude = longitude
-        # TODO: update anything that depends on the user location
 
     @abstractmethod
     def update_altaz(self):
@@ -59,7 +52,7 @@ class SpaceObserver(ABC):
 
     def __str__(self):
         cls_name = self.__class__.__name__
-        return f'<{cls_name}: {self.name}, {self.kind} observed from {self.latitude} {self.longitude}>'
+        return f'<{cls_name}: {self.name}, {self.kind} observed from {self.session.latitude} {self.session.longitude}>'
 
     def __repr__(self):
         cls_name = self.__class__.__name__
@@ -70,12 +63,12 @@ class PlanetObserver(SpaceObserver):
     """ This class represents a Solar System object being
     observed from a specific location on Earth at a given date/time.
     """
-    def __init__(self, object_name, location, time):
-        super().__init__(object, location, time)
+    def __init__(self, object_name, session):
+        super().__init__(object_name, session)
         self.kind = 'Solar System object'  # TODO: distinguish between regular planets, dwarf, moons...
-        self.here = here
+        
         self.p = planets[object_name]
-        self.planet_astro = self.here.at(t).observe(p)
+        self.planet_astro = self.session.here.at(self.session.start).observe(self.p)
         self.planet_app = self.planet_astro.apparent()
         self.name = planet.split()[0].upper()
         self.update_altaz()
@@ -88,7 +81,7 @@ class PlanetObserver(SpaceObserver):
             return False
         
     def update_altaz(self):
-        self.alt, self.az, self.distance = planet_app.altaz('standard')
+        self.alt, self.az, self.distance = self.planet_app.altaz('standard')
 
     def update_description(self):
         pass
