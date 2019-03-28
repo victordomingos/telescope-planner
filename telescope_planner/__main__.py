@@ -25,10 +25,6 @@ if __name__ == "__main__":
         print(f'  Alt.: {location.altitude:.0f}m\n')
 
     session = Session()
-    solar_system = []
-    for name in SOLAR_SYSTEM:
-        planet = PlanetObserver(name, location.latitude, location.longitude)
-        print(planet)
-        solar_system.append(planet)
+
 
     print(len(solar_system), "Solar System objects.")

@@ -2,26 +2,26 @@
 
 from abc import ABC, abstractmethod
 
-from telescope_planner.geocode import get_location, DEFAULT_LOCATION
-
-# Skipping Earth, since we are not planning to support observatories from other planets
-SOLAR_SYSTEM = [
-    'sun', 'mercury', 'venus', 'moon', 'mars', 'JUPITER BARYCENTER',
-    'URANUS BARYCENTER', 'NEPTUNE BARYCENTER', 'PLUTO BARYCENTER'
-]
+from telescope_planner.geocode import get_location
+from telescope_planner.constants import DEFAULT_LOCATION, NOW
 
 
 class SpaceObserver(ABC):
-    def __init__(self, object_name: str, latitude: float = DEFAULT_LOCATION.latitude,
-                 longitude: float = DEFAULT_LOCATION.longitude):
+    """ This is a base class that represents a generic space object being
+    observed from a specific location on Earth at a given date/time.
+    """
+
+    def __init__(self, object_name, location, time=NOW):
         self.object_name = object_name
 
         self.ra = None
         self.dec = None
         self.alt = None
         self.az = None
-        self.latitude = latitude
-        self.longitude = longitude
+        self.distance = None
+        self.user_location = location
+        #self.latitude = latitude
+        #self.longitude = longitude
         self.description: str = ''
         self.names = [object_name]
         self.magnitudes = {'V': None,
@@ -30,6 +30,7 @@ class SpaceObserver(ABC):
         self.is_bookmarked = False
         self.score = 0
         self.kind = ''
+        self.time = time
 
     @property
     def name(self):
@@ -57,30 +58,52 @@ class SpaceObserver(ABC):
         pass
 
     def __str__(self):
-        return f'<{self.__class__.__name__}: {self.name}, {self.kind} observed from {self.latitude} {self.longitude}>'
+        cls_name = self.__class__.__name__
+        return f'<{cls_name}: {self.name}, {self.kind} observed from {self.latitude} {self.longitude}>'
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}: {self.name}, {self.kind} observed from {self.latitude} {self.longitude}>'
+        cls_name = self.__class__.__name__
+        return f'<{cls_name}: {self.name}, {self.kind} observed from {self.latitude} {self.longitude}>'
 
 
 class PlanetObserver(SpaceObserver):
-    def __init__(self, object_name, latitude, longitude):
-        super().__init__(object_name, latitude, longitude)
+    """ This class represents a Solar System object being
+    observed from a specific location on Earth at a given date/time.
+    """
+    def __init__(self, object_name, location, time):
+        super().__init__(object, location, time)
         self.kind = 'Solar System object'  # TODO: distinguish between regular planets, dwarf, moons...
+        self.here = here
+        self.p = planets[object_name]
+        self.planet_astro = self.here.at(t).observe(p)
+        self.planet_app = self.planet_astro.apparent()
+        self.name = planet.split()[0].upper()
+        self.update_altaz()
+        self.is_up()
 
     def is_up(self):
-        pass
-
+        if self.alt.degrees > 0.0:
+            return True
+        else:
+            return False
+        
     def update_altaz(self):
-        pass
+        self.alt, self.az, self.distance = planet_app.altaz('standard')
 
     def update_description(self):
         pass
 
+    @property
+    def constellation(self):
+        return ''  # TODO: estimate which constellation where this planet may be at.
+
 
 class DeepSpaceObserver(SpaceObserver):
-    def __init__(self, object_name, latitude, longitude):
-        super().__init__(object_name, latitude, longitude)
+    """ This class represents a Deep Space object (star, galaxy, nebula,…)
+    being observed from a specific location on Earth at a given date/time.
+    """
+    def __init__(self, object_name, latitude, longitude, time):
+        super().__init__(object_name, latitude, longitude, time)
         self.kind = 'Deep Space object'  # TODO: distinguish between stars, galaxies...
         self.constellation = ''
 

@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
-
-from telescope_planner.geocode import DEFAULT_LOCATION
-
-now = None  # TODO
+from telescope_planner.constants import DEFAULT_LOCATION, NOW
 
 
-def get_next_sunset(when=now):
+def get_next_sunset(when=NOW):
     pass
 
 
-def get_next_sunrise(when=now):
+def get_next_sunrise(when=NOW):
     pass
 
 
@@ -41,6 +38,15 @@ class Session():
         self.using_catalogs = using_catalogs if using_catalogs is not None else []
 
         self.objects_visible = []
+        self.objects_not_visible = []
+        self.objects_not_defined = []
+
+        planets = load('de421.bsp')
+        earth = planets['earth']
+        here = earth + Topos(f'{location.latitude} N', f'{location.longitude} E')
+        solar_system = [ PlanetObserver(name, here, NOW)
+                         for name in SOLAR_SYSTEM]
+
 
 
     def __repr__(self):
