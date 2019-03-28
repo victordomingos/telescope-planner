@@ -2,19 +2,28 @@
 
 from abc import ABC, abstractmethod
 
-from .geocode import get_location, DEFAULT_LOCATION
+from telescope_planner.geocode import get_location, DEFAULT_LOCATION
+
+# Skipping Earth, since we are not planning to support observatories from other planets
+SOLAR_SYSTEM = [
+    'sun', 'mercury', 'venus', 'moon', 'mars', 'JUPITER BARYCENTER',
+    'URANUS BARYCENTER', 'NEPTUNE BARYCENTER', 'PLUTO BARYCENTER'
+]
 
 
 class SpaceObserver(ABC):
-    def __init__(self):
+    def __init__(self, object_name: str, latitude: float = DEFAULT_LOCATION.latitude,
+                 longitude: float = DEFAULT_LOCATION.longitude):
+        self.object_name = object_name
+
         self.ra = None
         self.dec = None
         self.alt = None
         self.az = None
-        self.latitude: float = DEFAULT_LOCATION.latitude
-        self.longitude: float = DEFAULT_LOCATION.longitude
+        self.latitude = latitude
+        self.longitude = longitude
         self.description: str = ''
-        self.names = []
+        self.names = [object_name]
         self.magnitudes = {'V': None,
                            'B': None,
                            }
@@ -47,11 +56,17 @@ class SpaceObserver(ABC):
     def is_up(self):
         pass
 
+    def __str__(self):
+        return f'<{self.__class__.__name__}: {self.name}, {self.kind} observed from {self.latitude} {self.longitude}>'
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__}: {self.name}, {self.kind} observed from {self.latitude} {self.longitude}>'
+
 
 class PlanetObserver(SpaceObserver):
-    def __init__(self):
-        super().__init__(self, *args, **kwargs)
-        self.kind = 'Planet'  # TODO: distinguish between regular planets, dwarf, moons...
+    def __init__(self, object_name, latitude, longitude):
+        super().__init__(object_name, latitude, longitude)
+        self.kind = 'Solar System object'  # TODO: distinguish between regular planets, dwarf, moons...
 
     def is_up(self):
         pass
@@ -62,16 +77,11 @@ class PlanetObserver(SpaceObserver):
     def update_description(self):
         pass
 
-    def __str__(self):
-        pass
-
-    def __repr__(self):
-        pass
-
 
 class DeepSpaceObserver(SpaceObserver):
-    def __init__(self):
-        super().__init__(self, *args, **kwargs)
+    def __init__(self, object_name, latitude, longitude):
+        super().__init__(object_name, latitude, longitude)
+        self.kind = 'Deep Space object'  # TODO: distinguish between stars, galaxies...
         self.constellation = ''
 
     def is_up(self):
@@ -81,10 +91,4 @@ class DeepSpaceObserver(SpaceObserver):
         pass
 
     def update_description(self):
-        pass
-
-    def __str__(self):
-        pass
-
-    def __repr__(self):
         pass

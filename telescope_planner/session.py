@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from .geocode import DEFAULT_LOCATION
+from telescope_planner.geocode import DEFAULT_LOCATION
 
 now = None  # TODO
 
