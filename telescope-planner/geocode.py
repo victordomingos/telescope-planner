@@ -58,8 +58,6 @@ ALTERNATIVE_LOCATION3 = SimpleNamespace(**{
     'dms_longitude': '170°27\'54.0"E',
 })
 
-#DEFAULT_LOCATION = ALTERNATIVE_LOCATION3
-
 
 def dd2dms(latitude: float, longitude: float) -> Tuple[str, str]:
     """ Convert decimal-degrees (DD) to degrees-minutes-seconds (DMS).
