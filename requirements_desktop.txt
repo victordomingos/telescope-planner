@@ -14,5 +14,5 @@ sgp4==1.4
 six==1.12.0
 skyfield==1.10
 urllib3==1.24.1
-pytz>=2015.07
-astroplan
+pytz==2018.9
+astroplan==0.4

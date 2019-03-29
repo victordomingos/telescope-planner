@@ -15,11 +15,13 @@ from telescope_planner.constants import DEFAULT_LOCATION
 from telescope_planner.geocode import get_location
 from telescope_planner.session import Session
 
-if __name__ == "__main__":
+
+def main():
+    print("Welcome to Telescope Planner!")  # DEBUG
     # location, source = get_location()
     location, source = DEFAULT_LOCATION, "DEBUG method"
     ts = load.timescale()
-    #now = ts.utc(2019, 3, 29, 1, 39)
+    # now = ts.utc(2019, 3, 29, 1, 39)
     now = ts.now()
     tz = timezone('Europe/Lisbon')
 
@@ -43,6 +45,21 @@ if __name__ == "__main__":
                       constellation=None,
                       min_apparent_mag=None,
                       using_catalogs=None)
-    print(session)
-    #print(len(session.solar_system), "Solar System objects.")
-    session.log_visible()
+
+    # session.log_visible() # DEBUG
+    print('\nSolar system:')
+    for obj in session.objects_visible.planets:
+        obj.update_altaz()
+        # print(obj.name, obj.alt, obj.az, obj.distance)
+        print(f'{obj.name.ljust(7)} {obj.alt.degrees:8.4f} {obj.az.degrees:7.4f}, {obj.distance.au:5.1f}au')
+
+
+    print('\nDeep space objects:')
+    for obj in session.objects_visible.deepspace:
+        obj.update_altaz()
+        #print(obj.name, obj.alt, obj.az, obj.distance)
+        print(f'{obj.name.ljust(7)} {obj.alt.degrees:8.4f} {obj.az.degrees:7.4f}, {obj.distance.au:5.1f}au')
+
+
+if __name__ == "__main__":
+    main()

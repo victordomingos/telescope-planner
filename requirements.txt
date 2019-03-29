@@ -1,5 +1,5 @@
 geocoder==1.38.1
 skyfield==1.10
 PyOngc==0.3.0
-pytz>=2015.7
-astroplan
+pytz==2018.9
+astroplan==0.4

@@ -2,7 +2,7 @@
 import geocoder
 import math
 
-from constants import DEFAULT_LOCATION
+from telescope_planner.constants import DEFAULT_LOCATION
 
 try:
     import sys
