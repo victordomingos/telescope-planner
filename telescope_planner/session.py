@@ -57,8 +57,10 @@ class Session():
 
         self.solar_system = [PlanetObserver(name, self)
                         for name in SOLAR_SYSTEM]
+        self.update_objects()
+        self.log_visible()
 
-        self.objects_visible = [obj for obj in self.solar_system if obj.is_up()]
+    def log_visible(self):
         print(len(self.objects_visible), "visible:")
         print(self.objects_visible)
 
@@ -77,7 +79,16 @@ class Session():
 
     def update_objects(self):
         """ Update coordinates and other properties for all visible objects """
-        pass
+        self.objects_visible = []
+        self.objects_not_visible = []
+        self.objects_not_defined = []
+        for obj in self.solar_system:
+            obj.update_altaz()
+            if obj.is_up():
+                self.objects_visible.append(obj)
+            else:
+                self.objects_not_visible.append(obj)
+
 
     def __repr__(self):
         cls_name = self.__class__.__name__
