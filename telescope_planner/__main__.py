@@ -43,5 +43,6 @@ if __name__ == "__main__":
                       constellation=None,
                       min_apparent_mag=None,
                       using_catalogs=None)
-
-    print(len(session.solar_system), "Solar System objects.")
+    print(session)
+    #print(len(session.solar_system), "Solar System objects.")
+    session.log_visible()
