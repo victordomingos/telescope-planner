@@ -2,9 +2,6 @@
 
 from abc import ABC, abstractmethod
 
-from telescope_planner.geocode import get_location
-from telescope_planner.constants import DEFAULT_LOCATION, NOW
-
 
 class SpaceObserver(ABC):
     """ This is a base class that represents a generic space object being
@@ -20,9 +17,7 @@ class SpaceObserver(ABC):
         self.alt = None
         self.az = None
         self.distance = None
-        self.user_location = location
-        #self.latitude = latitude
-        #self.longitude = longitude
+        self.user_location = (session.latitude, session.longitude, session.altitude)
         self.description: str = ''
         self.names = [object_name]
         self.magnitudes = {'V': None,
@@ -31,12 +26,11 @@ class SpaceObserver(ABC):
         self.is_bookmarked = False
         self.score = 0
         self.kind = ''
-        self.time = time
+        self.time = session.start
 
-    @property
+    @abstractmethod
     def name(self):
-        return self.names[0]
-
+        pass
 
     @abstractmethod
     def update_altaz(self):
@@ -50,13 +44,17 @@ class SpaceObserver(ABC):
     def is_up(self):
         pass
 
+    @abstractmethod
+    def will_be_up(self):
+        pass
+
     def __str__(self):
         cls_name = self.__class__.__name__
         return f'<{cls_name}: {self.name}, {self.kind} observed from {self.session.latitude} {self.session.longitude}>'
 
     def __repr__(self):
         cls_name = self.__class__.__name__
-        return f'<{cls_name}: {self.name}, {self.kind} observed from {self.latitude} {self.longitude}>'
+        return f'<{cls_name}: {self.name}, {self.kind} observed from {self.session.latitude} {self.session.longitude}>'
 
 
 class PlanetObserver(SpaceObserver):
@@ -67,19 +65,30 @@ class PlanetObserver(SpaceObserver):
         super().__init__(object_name, session)
         self.kind = 'Solar System object'  # TODO: distinguish between regular planets, dwarf, moons...
         
-        self.p = planets[object_name]
+        self.p = session.planets[object_name]
         self.planet_astro = self.session.here.at(self.session.start).observe(self.p)
         self.planet_app = self.planet_astro.apparent()
-        self.name = planet.split()[0].upper()
+        self._name = object_name.split()[0].upper()
         self.update_altaz()
         self.is_up()
 
+    @property
+    def name(self):
+        return self._name
+
     def is_up(self):
+        """Will this object above the horizon at the observation start time?"""
         if self.alt.degrees > 0.0:
             return True
         else:
             return False
-        
+
+    def will_be_up(self):
+        """Will this object be above the horizon between start and end times?"""
+        #self.planet_astro_interval = self.session.here.at(self.session.start).observe(self.p)
+        #self.planet_app_interval = self.planet_astro_interval.apparent()
+        pass # TODO
+
     def update_altaz(self):
         self.alt, self.az, self.distance = self.planet_app.altaz('standard')
 
@@ -101,6 +110,10 @@ class DeepSpaceObserver(SpaceObserver):
         self.constellation = ''
 
     def is_up(self):
+        pass
+
+    def will_be_up(self):
+        """Will this object be above the horizon between start and end times?"""
         pass
 
     def update_altaz(self):

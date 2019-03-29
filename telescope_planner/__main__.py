@@ -8,23 +8,40 @@ in a given date/time and place.
 
 © 2019 Victor Domingos (MIT License)
 """
+from skyfield.api import load
+from pytz import timezone
 
-from telescope_planner.geocode import get_location, DEFAULT_LOCATION
-from telescope_planner.observers import PlanetObserver, DeepSpaceObserver, SOLAR_SYSTEM
+from telescope_planner.constants import DEFAULT_LOCATION
+from telescope_planner.geocode import get_location
 from telescope_planner.session import Session
 
 if __name__ == "__main__":
     # location, source = get_location()
     location, source = DEFAULT_LOCATION, "DEBUG method"
+    ts = load.timescale()
+    #now = ts.utc(2019, 3, 29, 1, 39)
+    now = ts.now()
+    tz = timezone('Europe/Lisbon')
 
     print(f'\nBased on the {source}, this is your current location:\n')
-    print(f'  {location.dms_latitude} {location.dms_longitude}\n  {location.city}, {location.country}')
+    print(f'  {location.dms_latitude} {location.dms_longitude}')
+    print(f'  {location.city}, {location.country}')
     if location.altitude is None:
         print(f'  Alt.: <undetermined>')
     else:
         print(f'  Alt.: {location.altitude:.0f}m\n')
 
-    session = Session()
+    session = Session(start=now,
+                      end=now,
+                      latitude=location.latitude,
+                      longitude=location.longitude,
+                      altitude=location.altitude,
+                      min_alt=0.0,
+                      max_alt=90,
+                      min_az=None,
+                      max_az=None,
+                      constellation=None,
+                      min_apparent_mag=None,
+                      using_catalogs=None)
 
-
-    print(len(solar_system), "Solar System objects.")
+    print(len(session.solar_system), "Solar System objects.")

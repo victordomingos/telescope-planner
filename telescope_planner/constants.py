@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 from skyfield.api import load
 
 # Skipping Earth, since we are not planning to support observatories from other planets
