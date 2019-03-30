@@ -27,26 +27,31 @@ class SpaceObserver(ABC):
         self.score = 0
         self.kind = ''
         self.time = session.start
+        self.session_rises = None
+        self.session_sets = None
 
     @abstractmethod
     def name(self):
         pass
 
     @abstractmethod
-    def update_altaz(self):
+    def update_coords(self):
         pass
 
     @abstractmethod
-    def update_description(self):
+    def get_description(self):
         pass
 
     @abstractmethod
-    def is_up(self):
+    def is_up_now(self):
         pass
 
-    @abstractmethod
-    def will_be_up(self):
-        pass
+    def will_be_up_during_session(self):
+        """Will this object be above the horizon between start and end times?"""
+        if self.session_rises or self.session_sets:
+            return True
+        else:
+            return False
 
     def __str__(self):
         cls_name = self.__class__.__name__
@@ -61,38 +66,51 @@ class PlanetObserver(SpaceObserver):
     """ This class represents a Solar System object being
     observed from a specific location on Earth at a given date/time.
     """
+
     def __init__(self, object_name, session):
         super().__init__(object_name, session)
         self.kind = 'Solar System object'  # TODO: distinguish between regular planets, dwarf, moons...
-        
+
         self.p = session.planets[object_name]
-        self.planet_astro = self.session.here.at(self.session.start).observe(self.p)
-        self.planet_app = self.planet_astro.apparent()
+        self.planet_astro_session = self.session.here.at(self.session.start).observe(self.p)
+        self.planet_app_session = self.planet_astro_session.apparent()
+        self.planet_astro_now = None
+        self.planet_app_now = None
         self._name = object_name.split()[0].upper()
-        self.update_altaz()
-        self.is_up()
+        self.update_coords()
+        self.calculate_rise_and_set()
 
     @property
     def name(self):
         return self._name
 
-    def is_up(self):
-        """Will this object above the horizon at the observation start time?"""
+    def calculate_rise_and_set(self):
+        """Estimate date/times for object rises and sets during the session.
+        The generated values are made available as lists of dates, as the user
+        may eventually try to plan a mega-session spanning more than one night/day.
+        """
+        # TODO
+        self.session_rises = []
+        self.session_sets = []
+
+    def will_be_visible_during_session(self):
+        """Will this object be above the horizon between start and end times?"""
+        # TODO: add other criteria (sun, moon, weather?…)
+        return self.will_be_up_during_session()
+
+    def update_coords(self):
+        self.planet_astro_now = self.session.here.at(self.session.ts.now()).observe(self.p)
+        self.planet_app_now = self.planet_astro_now.apparent()
+        self.alt, self.az, self.distance = self.planet_app_now.altaz('standard')
+
+    def is_up_now(self):
+        """Is this object above the horizon right now?"""
         if self.alt.degrees > 0.0:
             return True
         else:
             return False
 
-    def will_be_up(self):
-        """Will this object be above the horizon between start and end times?"""
-        #self.planet_astro_interval = self.session.here.at(self.session.start).observe(self.p)
-        #self.planet_app_interval = self.planet_astro_interval.apparent()
-        pass # TODO
-
-    def update_altaz(self):
-        self.alt, self.az, self.distance = self.planet_app.altaz('standard')
-
-    def update_description(self):
+    def get_description(self):
         pass
 
     @property
@@ -104,20 +122,24 @@ class DeepSpaceObserver(SpaceObserver):
     """ This class represents a Deep Space object (star, galaxy, nebula,…)
     being observed from a specific location on Earth at a given date/time.
     """
-    def __init__(self, object_name, latitude, longitude, time):
-        super().__init__(object_name, latitude, longitude, time)
+
+    def __init__(self, object_name, session):
+        super().__init__(object_name, session)
         self.kind = 'Deep Space object'  # TODO: distinguish between stars, galaxies...
         self.constellation = ''
 
-    def is_up(self):
+    def is_up_now(self):
+        """Is this object above the horizon right now?"""
         pass
 
-    def will_be_up(self):
+    def will_be_visible_during_session(self):
         """Will this object be above the horizon between start and end times?"""
         pass
 
-    def update_altaz(self):
-        pass
+    def update_coords(self):
+        self.star_astro_now = session.here.at(self.session.ts.now()).observe(self.star_obj)
+        star_app = star_astro.apparent()
+        alt, az, d = star_app.altaz('standard')
 
-    def update_description(self):
+    def get_description(self):
         pass

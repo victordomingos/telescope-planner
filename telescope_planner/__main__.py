@@ -8,16 +8,21 @@ in a given date/time and place.
 
 © 2019 Victor Domingos (MIT License)
 """
+from types import SimpleNamespace
+
 from skyfield.api import load
 from pytz import timezone
 
-from telescope_planner.constants import DEFAULT_LOCATION
+from telescope_planner.constants import DEFAULT_LOCATION, OUR_TOP_LIST_PLANETS, OUR_TOP_LIST_DEEPSPACE
 from telescope_planner.geocode import get_location
 from telescope_planner.session import Session
 
 
 def main():
-    print("Welcome to Telescope Planner!")  # DEBUG
+    s = " Welcome to Telescope Planner! "
+    line = len(s) * '='
+    s = '\n' + line + '\n' + s + '\n' + line
+    print(s)  # DEBUG
     # location, source = get_location()
     location, source = DEFAULT_LOCATION, "DEBUG method"
     ts = load.timescale()
@@ -33,7 +38,9 @@ def main():
     else:
         print(f'  Alt.: {location.altitude:.0f}m\n')
 
-    session = Session(start=now,
+    from_list = SimpleNamespace(**{'planets': OUR_TOP_LIST_PLANETS, 'deepspace': OUR_TOP_LIST_DEEPSPACE})
+    session = Session(timescale=ts,
+                      start=now,
                       end=now,
                       latitude=location.latitude,
                       longitude=location.longitude,
@@ -44,21 +51,31 @@ def main():
                       max_az=None,
                       constellation=None,
                       min_apparent_mag=None,
-                      using_catalogs=None)
+                      using_catalogs=None,
+                      from_list=from_list)
 
     # session.log_visible() # DEBUG
-    print('\nSolar system:')
-    for obj in session.objects_visible.planets:
-        obj.update_altaz()
-        # print(obj.name, obj.alt, obj.az, obj.distance)
-        print(f'{obj.name.ljust(7)} {obj.alt.degrees:8.4f} {obj.az.degrees:7.4f}, {obj.distance.au:5.1f}au')
+    print('Here are some interesting objects up in the sky right now:')
+    print('\n  Solar system:'.upper())
 
+    if session.objects_visible_now.planets:
+        for obj in session.objects_visible_now.planets:
+            obj.update_coords()
+            # print(obj.name, obj.alt, obj.az, obj.distance)
+            print(f'   • {obj.name.ljust(7)} {obj.alt.degrees:8.4f} {obj.az.degrees:7.4f}, {obj.distance.au:5.1f}au')
+    else:
+        print('[Nothing to show here]')
 
-    print('\nDeep space objects:')
-    for obj in session.objects_visible.deepspace:
-        obj.update_altaz()
-        #print(obj.name, obj.alt, obj.az, obj.distance)
-        print(f'{obj.name.ljust(7)} {obj.alt.degrees:8.4f} {obj.az.degrees:7.4f}, {obj.distance.au:5.1f}au')
+    print('\n  Deep space objects:'.upper())
+    if session.objects_visible_now.deepspace:
+        for obj in session.objects_visible_now.deepspace:
+            obj.update_coords()
+            # print(obj.name, obj.alt, obj.az, obj.distance)
+            print(f'   • {obj.name.ljust(7)} {obj.alt.degrees:8.4f} {obj.az.degrees:7.4f}, {obj.distance.au:5.1f}au')
+    else:
+        print('   • [Nothing to show here]')
+
+    print('\n')
 
 
 if __name__ == "__main__":

@@ -4,11 +4,19 @@ from skyfield.api import load
 
 # Skipping Earth, since we are not planning to support observatories from other planets
 SOLAR_SYSTEM = ['sun', 'mercury', 'venus', 'moon', 'mars',
-                'JUPITER BARYCENTER', 'URANUS BARYCENTER',
+                'JUPITER BARYCENTER', 'URANUS BARYCENTER', 'SATURN BARYCENTER',
                 'NEPTUNE BARYCENTER', 'PLUTO BARYCENTER']
 
-ts = load.timescale()
-NOW = ts.now()
+MESSIER_LIST = ['M' + str(i) for i in range(1, 111)]
+
+OUR_TOP_LIST_DEEPSPACE = ['M4', 'M6', 'M8', 'M13', 'M16', 'M17', 'M20', 'M22',
+                          'M27', 'M31', 'M33', 'M42', 'M45', 'M57', 'M83',
+                          'M104', 'NGC104', 'NGC253', 'NGC 869', 'NGC884',
+                          'NGC2070', 'NGC3293', 'NGC3372', 'NGC5128', 'NGC5139']
+
+OUR_TOP_LIST_PLANETS = ['mercury', 'venus', 'moon', 'mars',
+                        'JUPITER BARYCENTER', 'URANUS BARYCENTER',
+                        'NEPTUNE BARYCENTER', ]
 
 # Used by default, when there are no location services available
 DEFAULT_LOCATION = SimpleNamespace(**{
