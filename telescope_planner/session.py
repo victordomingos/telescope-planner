@@ -36,8 +36,9 @@ def get_dso_list(catalog=None, kind=None, constellation=None, uptovmag=None, lim
     if uptovmag is not None and is_float(uptovmag):
         params.update({'uptovmag': float(uptovmag)})
 
-    print(params)
-    return listObjects(**params)[0:limit]
+    # print(params) # DEBUG
+    return [obj for obj in listObjects(**params)[0:limit]
+            if obj.getType() != "Duplicated record"]
 
 
 class Session:
@@ -66,7 +67,7 @@ class Session:
         self.constellation = constellation
 
         # Kind
-        self.only_kind =only_kind if only_kind is not None else None
+        self.only_kind = only_kind if only_kind is not None else None
         # restrict current session to objects with apparent magnitude greater than:
         self.min_apparent_mag = min_apparent_mag
 
@@ -97,8 +98,7 @@ class Session:
                 self.solar_system = [PlanetObserver(name, self)
                                      for name in self.only_these_sources.planets]
             else:
-                self.solar_system = [PlanetObserver(name, self)
-                                     for name in SOLAR_SYSTEM]
+                self.solar_system = [PlanetObserver(name, self) for name in SOLAR_SYSTEM]
 
             if self.only_these_sources.deepspace:
                 for obj_id in self.only_these_sources.deepspace:
@@ -106,13 +106,10 @@ class Session:
                         self.deepspace_selection.append(DeepSpaceObserver(obj_id, self))
                     except ValueError as e:
                         print(e)
-
             else:
                 self.deepspace_selection = []
         else:
-            self.solar_system = [PlanetObserver(name, self)
-                                 for name in SOLAR_SYSTEM]
-
+            self.solar_system = [PlanetObserver(name, self) for name in SOLAR_SYSTEM]
             selection = []
             selection += get_dso_list(catalog=only_from_catalog,
                                       kind=only_kind,
@@ -121,14 +118,11 @@ class Session:
                                       limit=self.limit)
 
             for obj in selection:
-                print(obj)
                 try:
                     self.deepspace_selection.append(DeepSpaceObserver(obj, self))
                 except Exception as e:
                     print(e)
 
-            # print(self.deepspace_selection)
-            print(len(self.deepspace_selection))
             self.update_now_solar_objects()
             self.update_now_deepspace_objects()
 

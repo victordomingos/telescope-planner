@@ -130,6 +130,8 @@ CONSTELLATIONS_LATIN_FROM_ABREV = {
     'Scl': 'Sculptor',
     'Sct': 'Scutum',
     'Ser': 'Serpens',
+    'Se1': 'Serpens Caput',
+    'Se2': 'Serpens Cauda',
     'Sex': 'Sextans',
     'Tau': 'Taurus',
     'Tel': 'Telescopium',
