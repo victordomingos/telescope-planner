@@ -5,7 +5,8 @@ from pyongc.ongc import listObjects
 from skyfield.api import Loader, Topos
 
 from telescope_planner.constants import DEFAULT_LOCATION, SOLAR_SYSTEM
-from telescope_planner.constants import ONGC_CATALOGS_ABREVS_FROM_NAMES, CONSTELLATIONS_ABREV_FROM_LATIN
+from telescope_planner.constants import ONGC_CATALOGS_ABREVS_FROM_NAMES, CONSTELLATIONS_ABREV_FROM_LATIN, \
+    CONSTELLATIONS_LATIN_FROM_ABREV
 from telescope_planner.constants import ONGC_TYPES_ABREVS_FROM_NAMES
 from telescope_planner.geocode import get_location
 from telescope_planner.observers import PlanetObserver, DeepSpaceObserver
@@ -20,29 +21,30 @@ def is_float(value):
         return False
 
 
-def get_dso_list(catalog=None, kind=None, constellation=None, uptovmag=None):
+def get_dso_list(catalog=None, kind=None, constellation=None, uptovmag=None, limit=None):
     params = dict()
 
-    if catalog is not None and catalog in ONGC_CATALOGS_ABREVS_FROM_NAMES.keys():
+    if (catalog is not None) and (catalog in ONGC_CATALOGS_ABREVS_FROM_NAMES.keys()):
         params.update({'catalog': ONGC_CATALOGS_ABREVS_FROM_NAMES[catalog]})
 
-    if kind is not None and kind in ONGC_TYPES_ABREVS_FROM_NAMES.keys():
+    if (kind is not None) and (kind in ONGC_TYPES_ABREVS_FROM_NAMES.keys()):
         params.update({'type': ONGC_TYPES_ABREVS_FROM_NAMES[kind]})
 
-    if constellation is not None and constellation in CONSTELLATIONS_ABREV_FROM_LATIN.keys():
+    if (constellation is not None) and (constellation in CONSTELLATIONS_ABREV_FROM_LATIN.keys()):
         params.update({'constellation': CONSTELLATIONS_ABREV_FROM_LATIN[constellation]})
 
     if uptovmag is not None and is_float(uptovmag):
         params.update({'uptovmag': float(uptovmag)})
 
-    return listObjects(**params)
+    print(params)
+    return listObjects(**params)[0:limit]
 
 
 class Session:
     def __init__(self, timescale=None, start=None, end=None, latitude=DEFAULT_LOCATION.latitude,
                  longitude=DEFAULT_LOCATION.longitude, altitude=DEFAULT_LOCATION.altitude, min_alt=0.0, max_alt=90,
-                 min_az=None, max_az=None,
-                 constellation=None, min_apparent_mag=None, only_from_catalog=None, only_these_sources=None):
+                 min_az=None, max_az=None, constellation=None, only_kind=None, min_apparent_mag=None,
+                 only_from_catalog=None, only_these_sources=None, limit=None):
         self.start = start if start is not None else get_next_sunset()
         self.end = end if end is not None else get_next_sunrise()
 
@@ -63,12 +65,16 @@ class Session:
         # restrict current session to objects that are inside or near a specific constellation:
         self.constellation = constellation
 
+        # Kind
+        self.only_kind =only_kind if only_kind is not None else None
         # restrict current session to objects with apparent magnitude greater than:
         self.min_apparent_mag = min_apparent_mag
 
         # restrict current session to objects in these catalogs:
         self.using_catalogs = only_from_catalog if only_from_catalog is not None else []
         self.only_these_sources = only_these_sources
+
+        self.limit = limit
 
         self.objects_visible_now = SimpleNamespace(**{'planets': [], 'deepspace': []})
         self.objects_not_visible = SimpleNamespace(**{'planets': [], 'deepspace': []})
@@ -109,17 +115,19 @@ class Session:
 
             selection = []
             selection += get_dso_list(catalog=only_from_catalog,
-                                      kind="Galaxy",
+                                      kind=only_kind,
                                       constellation=constellation,
-                                      uptovmag=min_apparent_mag)
+                                      uptovmag=min_apparent_mag,
+                                      limit=self.limit)
 
             for obj in selection:
+                print(obj)
                 try:
                     self.deepspace_selection.append(DeepSpaceObserver(obj, self))
                 except Exception as e:
                     print(e)
 
-            #print(self.deepspace_selection)
+            # print(self.deepspace_selection)
             print(len(self.deepspace_selection))
             self.update_now_solar_objects()
             self.update_now_deepspace_objects()

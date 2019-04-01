@@ -10,10 +10,11 @@ in a given date/time and place.
 """
 from types import SimpleNamespace
 
-from skyfield.api import load
+from skyfield.api import Loader
 from pytz import timezone
 
 from telescope_planner.constants import DEFAULT_LOCATION, OUR_TOP_LIST_PLANETS, OUR_TOP_LIST_DEEPSPACE
+from telescope_planner.settings import DATA_FOLDER
 from telescope_planner.geocode import get_location
 from telescope_planner.session import Session
 
@@ -25,6 +26,7 @@ def main():
     print(s)  # DEBUG
     # location, source = get_location()
     location, source = DEFAULT_LOCATION, "DEBUG method"
+    load = Loader(DATA_FOLDER)
     ts = load.timescale()
     # now = ts.utc(2019, 3, 29, 1, 39)
     now = ts.now()
@@ -50,10 +52,12 @@ def main():
                       max_alt=90,
                       min_az=None,
                       max_az=None,
-                      constellation='Peg',
+                      constellation=None,  # E.g. 'Virgo'
+                      only_kind=None,  # E.g. 'Galaxy'
                       min_apparent_mag=None,
-                      only_from_catalog='Messier',
-                      only_these_sources=None)
+                      only_from_catalog='NGC',  # NGC, IC, or Messier
+                      only_these_sources=None,  # A dictionary of the top lists, from constants
+                      limit=500)  # None for no limit, an integer to limit the number of results, for faster completion.
 
     # session.log_visible() # DEBUG
     print('Here are some interesting objects up in the sky right now:')
