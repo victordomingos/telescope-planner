@@ -1,29 +1,48 @@
 #!/usr/bin/env python3
 from types import SimpleNamespace
 
+from pyongc.ongc import listObjects
 from skyfield.api import Loader, Topos
-from pyongc import Dso, listObjects
 
 from telescope_planner.constants import DEFAULT_LOCATION, SOLAR_SYSTEM
+from telescope_planner.constants import ONGC_CATALOGS_ABREVS_FROM_NAMES, CONSTELLATIONS_ABREV_FROM_LATIN
+from telescope_planner.constants import ONGC_TYPES_ABREVS_FROM_NAMES
 from telescope_planner.geocode import get_location
-from telescope_planner.settings import DATA_FOLDER
 from telescope_planner.observers import PlanetObserver, DeepSpaceObserver
-
-"""
-def get_next_sunset(when=NOW):
-    pass
+from telescope_planner.settings import DATA_FOLDER
 
 
-def get_next_sunrise(when=NOW):
-    pass
-"""
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
 
 
-class Session():
+def get_dso_list(catalog=None, kind=None, constellation=None, uptovmag=None):
+    params = dict()
+
+    if catalog is not None and catalog in ONGC_CATALOGS_ABREVS_FROM_NAMES.keys():
+        params.update({'catalog': ONGC_CATALOGS_ABREVS_FROM_NAMES[catalog]})
+
+    if kind is not None and kind in ONGC_TYPES_ABREVS_FROM_NAMES.keys():
+        params.update({'type': ONGC_TYPES_ABREVS_FROM_NAMES[kind]})
+
+    if constellation is not None and constellation in CONSTELLATIONS_ABREV_FROM_LATIN.keys():
+        params.update({'constellation': CONSTELLATIONS_ABREV_FROM_LATIN[constellation]})
+
+    if uptovmag is not None and is_float(uptovmag):
+        params.update({'uptovmag': float(uptovmag)})
+
+    return listObjects(**params)
+
+
+class Session:
     def __init__(self, timescale=None, start=None, end=None, latitude=DEFAULT_LOCATION.latitude,
                  longitude=DEFAULT_LOCATION.longitude, altitude=DEFAULT_LOCATION.altitude, min_alt=0.0, max_alt=90,
                  min_az=None, max_az=None,
-                 constellation=None, min_apparent_mag=None, using_catalogs=None, from_list=None):
+                 constellation=None, min_apparent_mag=None, only_from_catalog=None, only_these_sources=None):
         self.start = start if start is not None else get_next_sunset()
         self.end = end if end is not None else get_next_sunrise()
 
@@ -48,8 +67,8 @@ class Session():
         self.min_apparent_mag = min_apparent_mag
 
         # restrict current session to objects in these catalogs:
-        self.using_catalogs = using_catalogs if using_catalogs is not None else []
-        self.from_list = from_list
+        self.using_catalogs = only_from_catalog if only_from_catalog is not None else []
+        self.only_these_sources = only_these_sources
 
         self.objects_visible_now = SimpleNamespace(**{'planets': [], 'deepspace': []})
         self.objects_not_visible = SimpleNamespace(**{'planets': [], 'deepspace': []})
@@ -62,25 +81,48 @@ class Session():
         load = Loader(DATA_FOLDER)
         self.planets = load('de421.bsp')
         self.earth = self.planets['earth']
-        self.here = None
+        self.here = self.earth + Topos(f'{self.latitude} N', f'{self.longitude} E')
 
         self.update_user_location(self.latitude, self.longitude)
+        self.deepspace_selection = []
 
-        if self.from_list.planets:
-            self.solar_system = [PlanetObserver(name, self)
-                                 for name in self.from_list.planets]
+        if self.only_these_sources is not None:
+            if self.only_these_sources.planets:
+                self.solar_system = [PlanetObserver(name, self)
+                                     for name in self.only_these_sources.planets]
+            else:
+                self.solar_system = [PlanetObserver(name, self)
+                                     for name in SOLAR_SYSTEM]
+
+            if self.only_these_sources.deepspace:
+                for obj_id in self.only_these_sources.deepspace:
+                    try:
+                        self.deepspace_selection.append(DeepSpaceObserver(obj_id, self))
+                    except ValueError as e:
+                        print(e)
+
+            else:
+                self.deepspace_selection = []
         else:
             self.solar_system = [PlanetObserver(name, self)
                                  for name in SOLAR_SYSTEM]
 
-        if self.from_list.deepspace:
-            self.deepspace_selection = [DeepSpaceObserver(name, self)
-                                        for name in self.from_list.deepspace]
-        else:
-            self.deepspace_selection = []
+            selection = []
+            selection += get_dso_list(catalog=only_from_catalog,
+                                      kind="Galaxy",
+                                      constellation=constellation,
+                                      uptovmag=min_apparent_mag)
 
-        self.update_now_solar_objects()
-        self.update_now_deepspace_objects()
+            for obj in selection:
+                try:
+                    self.deepspace_selection.append(DeepSpaceObserver(obj, self))
+                except Exception as e:
+                    print(e)
+
+            #print(self.deepspace_selection)
+            print(len(self.deepspace_selection))
+            self.update_now_solar_objects()
+            self.update_now_deepspace_objects()
 
     def log_visible(self):
         print(len(self.objects_visible_now.planets), "visible solar system objects:")
@@ -112,6 +154,12 @@ class Session():
             else:
                 self.objects_not_visible.planets.append(obj)
 
+    def get_next_sunset():
+        pass
+
+    def get_next_sunrise():
+        pass
+
     def generate_session_list(self):
         self.objects_visible_during_session.planets = []
         self.objects_not_visible_during_session.planets = []
@@ -129,32 +177,16 @@ class Session():
         self.objects_visible_during_session.deepspace = []
         self.objects_not_visible.deepspace = []
         self.objects_not_defined.deepspace = []
-        if self.from_list.deepspace:
-            for obj in self.from_list.deepspace:
-                try:
-                    star_astro = here.at(t).observe(star_obj)
-                    star_app = star_astro.apparent()
-                    alt, az, d = star_app.altaz('standard')
 
-                    DSOobject = ongc.Dso(obj)
-                    ra_arr, dec_arr = DSOobject.getCoords()
-                    ra, dec = tuple(ra_arr), tuple(dec_arr)
-                    alt_ids = DSOobject.getIdentifiers()
-                    messier = alt_ids[0]
-                    constellation = DSOobject.getConstellation()
-                    obj_type = DSOobject.getType()
-                    # TODO …
-                except ValueError as e:
-                    # print(e)
-                    pass
-        """ TODO:
-        for obj in self.solar_system:
-            obj.update_altaz()
-            if obj.is_up():
-                self.objects_visible.deepspace.append(obj)
-            else:
-                self.objects_not_visible.deepspace.append(obj)
-        """
+        for obj in self.deepspace_selection:
+            try:
+                obj.update_coords()
+                if obj.is_up_now():
+                    self.objects_visible_now.deepspace.append(obj)
+                else:
+                    self.objects_not_visible.deepspace.append(obj)
+            except ValueError as e:
+                print(e)
 
     def __repr__(self):
         cls_name = self.__class__.__name__

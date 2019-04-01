@@ -38,7 +38,8 @@ def main():
     else:
         print(f'  Alt.: {location.altitude:.0f}m\n')
 
-    from_list = SimpleNamespace(**{'planets': OUR_TOP_LIST_PLANETS, 'deepspace': OUR_TOP_LIST_DEEPSPACE})
+    # TODO: The sources variable can be initialized with a list of Messier IDs, for instance
+    sources = SimpleNamespace(**{'planets': OUR_TOP_LIST_PLANETS, 'deepspace': OUR_TOP_LIST_DEEPSPACE})
     session = Session(timescale=ts,
                       start=now,
                       end=now,
@@ -49,10 +50,10 @@ def main():
                       max_alt=90,
                       min_az=None,
                       max_az=None,
-                      constellation=None,
+                      constellation='Peg',
                       min_apparent_mag=None,
-                      using_catalogs=None,
-                      from_list=from_list)
+                      only_from_catalog='Messier',
+                      only_these_sources=None)
 
     # session.log_visible() # DEBUG
     print('Here are some interesting objects up in the sky right now:')

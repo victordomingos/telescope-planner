@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from abc import ABC, abstractmethod
-
+from pyongc import ongc
+from skyfield.api import Star
 
 class SpaceObserver(ABC):
     """ This is a base class that represents a generic space object being
@@ -125,21 +126,56 @@ class DeepSpaceObserver(SpaceObserver):
 
     def __init__(self, object_name, session):
         super().__init__(object_name, session)
-        self.kind = 'Deep Space object'  # TODO: distinguish between stars, galaxies...
-        self.constellation = ''
+        if type(object_name) == ongc.Dso:
+            self.dso = object_name  # If class initialized directly with a Dso, use it, else create a new one.
+        else:
+            try:
+                self.dso = ongc.Dso(object_name)
+            except Exception as e:
+                print(e)
+        #print("DSO:", self.dso, type(self.dso))
+
+        #self.kind = 'Deep Space object'  # TODO: distinguish between stars, galaxies...
+        #self.constellation = ''
+        ra_arr, dec_arr = self.dso.getCoords()
+        self.ra, self.dec = tuple(ra_arr), tuple(dec_arr)
+        self.alt_ids = self.dso.getIdentifiers()
+        self.constellation = self.dso.getConstellation()
+        self.kind = self.dso.getType()
+        self.star = Star(ra_hours=self.ra, dec_degrees=self.dec)
+        self.star_astro_now = self.astrometric = self.session.here.at(self.session.start).observe(self.star)
+        self.apparent = self.astrometric.apparent()
+
+        self.alt, self.az, self.distance = self.apparent.altaz('standard')
+
+        ra_arr, dec_arr = self.dso.getCoords()
+        self.ra, self.dec = tuple(ra_arr), tuple(dec_arr)
+        self.alt_ids = self.dso.getIdentifiers()
+        self.messier = self.alt_ids[0]
+        self.constellation = self.dso.getConstellation()
+        self.kind = self.dso.getType()
+
+    @property
+    def name(self):
+        return self.dso.getName()
+
+    def update_coords(self):
+        pass
+
+    def get_description(self):
+        pass
 
     def is_up_now(self):
         """Is this object above the horizon right now?"""
-        pass
-
-    def will_be_visible_during_session(self):
-        """Will this object be above the horizon between start and end times?"""
-        pass
+        if self.alt.degrees > 0.0:
+            return True
+        else:
+            return False
 
     def update_coords(self):
-        self.star_astro_now = session.here.at(self.session.ts.now()).observe(self.star_obj)
-        star_app = star_astro.apparent()
-        alt, az, d = star_app.altaz('standard')
+        self.star_astro_now = self.session.here.at(self.session.ts.now()).observe(self.star)
+        self.apparent = self.astrometric.apparent()
+        self.alt, self.az, self.distance = self.apparent.altaz('standard')
 
     def get_description(self):
         pass
