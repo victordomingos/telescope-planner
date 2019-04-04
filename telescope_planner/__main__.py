@@ -51,6 +51,7 @@ def main():
         print(f'  Alt.: {location.altitude:.0f}m\n')
         altitude = location.altitude
 
+
     # TODO: The sources variable can be initialized with a list of Messier IDs, for instance
     sources = SimpleNamespace(**{'planets': OUR_TOP_LIST_PLANETS,
                                  'deepspace': OUR_TOP_LIST_DEEPSPACE})
@@ -61,7 +62,7 @@ def main():
                       'longitude': location.longitude,
                       'altitude': altitude,
                       'min_alt': 0.0,
-                      'max_alt': 90,
+                      'max_alt': 90.0,
                       'min_az': 0.0,
                       'max_az': 360.0,
                       'constellation': None,  # E.g. 'Virgo', 'Leo'

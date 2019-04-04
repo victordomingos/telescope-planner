@@ -4,7 +4,7 @@ import logging
 from types import SimpleNamespace
 
 from pyongc.ongc import listObjects
-from skyfield.api import Loader, Topos
+from skyfield.api import Loader, Topos, load, Angle
 
 from telescope_planner.constants import DEFAULT_LOCATION, SOLAR_SYSTEM
 from telescope_planner.constants import ONGC_CATALOGS_ABREVS_FROM_NAMES, CONSTELLATIONS_ABBREV_FROM_LATIN
@@ -41,10 +41,17 @@ def get_dso_list(catalog=None, kind=None, constellation=None, uptovmag=None, lim
             if obj.getType() != "Duplicated record"]
 
 
+def is_inside_window(obj, min_ra, min_dec, max_ra, max_dec):
+    #TODO: debug these data types ;-)
+    if (min_ra <= obj.getRA() <= max_ra) and (min_dec <= obj.getDec() <= max_dec):
+        return True
+    else:
+        return False
+
 class Session:
     def __init__(self, timescale=None, start=None, end=None, latitude=DEFAULT_LOCATION.latitude,
-                 longitude=DEFAULT_LOCATION.longitude, altitude=DEFAULT_LOCATION.altitude, min_alt=0.0, max_alt=90,
-                 min_az=None, max_az=None, constellation=None, only_kind=None, min_apparent_mag=None,
+                 longitude=DEFAULT_LOCATION.longitude, altitude=DEFAULT_LOCATION.altitude, min_alt=0.0, max_alt=90.0,
+                 min_az=0.0, max_az=360.0, constellation=None, only_kind=None, min_apparent_mag=None,
                  only_from_catalog=None, only_these_sources=None, limit=None):
         self.start = start if start is not None else get_next_sunset()
         self.end = end if end is not None else get_next_sunrise()
@@ -55,13 +62,6 @@ class Session:
         self.latitude = latitude
         self.longitude = longitude
         self.altitude = altitude
-
-        # minimum altitude/azimuth that will be used in this session (depending
-        # for instance on the telescope mount angles or any physical obstacles on the observatory):
-        self.min_alt = min_alt
-        self.max_alt = max_alt
-        self.min_az = min_az
-        self.max_az = max_az
 
         # restrict current session to objects that are inside or near a specific constellation:
         self.constellation = constellation
@@ -91,6 +91,22 @@ class Session:
         self.here = self.earth + Topos(latitude=f'{self.latitude} N',
                                        longitude=f'{self.longitude} E',
                                        elevation_m=self.altitude)
+
+        # Use minimum altitude/azimuth provided for this session (depending for
+        # instance on the telescope mount angles or any physical obstacles on
+        # the observatory), define a window constraint converting from alt/az to ra/dec,
+        # for current location/datetime:
+        #ts = load.timescale()
+        #planets = load('de421.bsp')
+        #earth = planets['earth']
+
+        self.moment = self.ts.now()
+        #self.here = earth + Topos(latitude=f'{self.latitude} N',
+        #                     longitude=f'{self.longitude} E',
+        #                     elevation_m=self.altitude)
+
+        self.min_ra, self.min_dec, _ = self.here.at(self.moment).from_altaz(alt_degrees=min_alt, az_degrees=min_az).radec()
+        self.max_ra, self.max_dec, _ = self.here.at(self.moment).from_altaz(alt_degrees=max_alt, az_degrees=max_az).radec()
 
         self.update_user_location(self.latitude, self.longitude)
         self.deepspace_selection = []
@@ -123,7 +139,12 @@ class Session:
                                       kind=only_kind,
                                       constellation=constellation,
                                       uptovmag=min_apparent_mag,
-                                      limit=self.limit)
+                                      limit=self.limit,
+                                      # TODO: Add min_ra, min_dec, max_ra, max_dec here
+                                      )
+
+            selection_filtered = [obj for obj in selection
+                                  if is_inside_window(obj, self.min_ra, self.min_dec,self.max_ra, self.max_dec,)]
 
             for obj in selection:
                 try:

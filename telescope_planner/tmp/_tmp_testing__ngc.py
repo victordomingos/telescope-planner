@@ -183,13 +183,30 @@ def altaz2radec(location=None, moment=None, min_alt=0.0, max_alt=90.0, min_az=0.
     """ Define a rectangle constraint using ra/dec for current location/datetime """
     bottom_left = location.at(moment).from_altaz(alt_degrees=min_alt, az_degrees=min_az)
     top_right = location.at(moment).from_altaz(alt_degrees=max_alt, az_degrees=max_az)
-    bl_ra, bl_dec, _ = bottom_left.radec()
-    tr_ra, tr_dec, _ = top_right.radec()
-    print("Bottom Left -  RA:", bl_ra, "DEC:", bl_dec)  # Acamar 2h58m57s / -40°13'52"
-    print("Top Right   -  RA:", tr_ra, "DEC:", tr_dec)  # Sol 00h53m37s / 5°44'30"
+    min_ra, min_dec, _ = bottom_left.radec()
+    max_ra, max_dec, _ = top_right.radec()
+    return min_ra, min_dec, max_ra, max_dec
 
 
-altaz2radec(location=here, moment=t, min_alt=7.95, max_alt=40.5, min_az=185.95, max_az=234.0)
+
+bl_ra, bl_dec, tr_ra, tr_dec = altaz2radec(location=here, moment=t, min_alt=7.95, max_alt=40.5, min_az=185.95, max_az=234.0)
+print(1)
+print("  Bottom Left -  RA:", bl_ra, "DEC:", bl_dec)  # Acamar 2h58m57s / -40°13'52"
+print("  Top Right   -  RA:", tr_ra, "DEC:", tr_dec)  # Sol 00h53m37s / 5°44'30"
+
+
+bl_ra, bl_dec, tr_ra, tr_dec = altaz2radec(location=here, moment=t, min_alt=7.95, max_alt=52.3, min_az=185.95, max_az=96.92)
+print(2)
+print("  Bottom Left -  RA:", bl_ra, "DEC:", bl_dec)  # Acamar 2h58m57s / -40°13'52"
+print("  Top Right   -  RA:", tr_ra, "DEC:", tr_dec)  # Polux 7h46m30s / 51°50'00"
+
+
+bl_ra, bl_dec, tr_ra, tr_dec = altaz2radec(location=here, moment=t, min_alt=7.95, max_alt=25.6, min_az=185.95, max_az=254.0)
+print(3)
+print("  Bottom Left -  RA:", bl_ra, "DEC:", bl_dec)  # Acamar 2h58m57s / -40°13'52"
+print("  Top Right   -  RA:", tr_ra, "DEC:", tr_dec)  # Sol 00h53m37s / 5°44'30"
+
+
 """
 for name in star_names:
     try:
