@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+import logging
+
 from abc import ABC, abstractmethod
 from pyongc import ongc
 from skyfield.api import Star
+
 
 class SpaceObserver(ABC):
     """ This is a base class that represents a generic space object being
@@ -80,6 +83,7 @@ class PlanetObserver(SpaceObserver):
         self._name = object_name.split()[0].upper()
         self.update_coords()
         self.calculate_rise_and_set()
+        #logging.debug(self)
 
     @property
     def name(self):
@@ -132,7 +136,7 @@ class DeepSpaceObserver(SpaceObserver):
             try:
                 self.dso = ongc.Dso(object_name)
             except Exception as e:
-                print(e)
+                logging.warning(e)
         #print("DSO:", self.dso, type(self.dso))
 
         #self.kind = 'Deep Space object'  # TODO: distinguish between stars, galaxies...
@@ -154,6 +158,7 @@ class DeepSpaceObserver(SpaceObserver):
         self.messier = self.alt_ids[0]
         self.constellation = self.dso.getConstellation()
         self.kind = self.dso.getType()
+        #logging.debug(self)
 
     @property
     def name(self):

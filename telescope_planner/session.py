@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import logging
+
 from types import SimpleNamespace
 
 from pyongc.ongc import listObjects
@@ -35,7 +37,6 @@ def get_dso_list(catalog=None, kind=None, constellation=None, uptovmag=None, lim
     if uptovmag is not None and is_float(uptovmag):
         params.update({'uptovmag': float(uptovmag)})
 
-    # print(params) # DEBUG
     return [obj for obj in listObjects(**params)[0:limit]
             if obj.getType() != "Duplicated record"]
 
@@ -96,21 +97,27 @@ class Session:
 
         if self.only_these_sources is not None:
             if self.only_these_sources.planets:
+                logging.debug("=== Using our Top List for Solar System")  # DEBUG
                 self.solar_system = [PlanetObserver(name, self)
                                      for name in self.only_these_sources.planets]
             else:
+                logging.debug("=== Using All Planets from Solar System")  # DEBUG
                 self.solar_system = [PlanetObserver(name, self) for name in SOLAR_SYSTEM]
 
             if self.only_these_sources.deepspace:
+                logging.debug("=== Using our Top List for Solar System")  # DEBUG
                 for obj_id in self.only_these_sources.deepspace:
                     try:
                         self.deepspace_selection.append(DeepSpaceObserver(obj_id, self))
                     except ValueError as e:
-                        print(e)
+                        logging.warning(e)
             else:
+                logging.debug("=== Not using Deep Space this time")  # DEBUG
                 self.deepspace_selection = []
         else:
+            logging.debug("=== Using our Top List for Solar System")  # DEBUG
             self.solar_system = [PlanetObserver(name, self) for name in SOLAR_SYSTEM]
+            logging.debug(f"=== Using session parameters for Deep Space {only_from_catalog} {only_kind} {constellation} {min_apparent_mag} {self.limit}")  # DEBUG
             selection = []
             selection += get_dso_list(catalog=only_from_catalog,
                                       kind=only_kind,
@@ -122,9 +129,10 @@ class Session:
                 try:
                     self.deepspace_selection.append(DeepSpaceObserver(obj, self))
                 except Exception as e:
-                    print(e)
-
+                    logging.warning(e)
+            logging.debug("=== Updating current positions for solar system objects")  # DEBUG
             self.update_now_solar_objects()
+            logging.debug("=== Updating current positions for deep space objects")  # DEBUG
             self.update_now_deepspace_objects()
 
     def log_visible(self):
@@ -189,7 +197,7 @@ class Session:
                 else:
                     self.objects_not_visible.deepspace.append(obj)
             except ValueError as e:
-                print(e)
+                logging.warning(e)
 
     def __repr__(self):
         cls_name = self.__class__.__name__

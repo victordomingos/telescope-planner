@@ -8,6 +8,10 @@ in a given date/time and place.
 
 © 2019 Victor Domingos (MIT License)
 """
+import logging
+import sys
+
+from pprint import pformat
 from types import SimpleNamespace
 
 from skyfield.api import Loader
@@ -21,9 +25,13 @@ from telescope_planner.session import Session
 
 
 def main():
+    logging.basicConfig(level=logging.DEBUG,
+                        datefmt='%Y-%b-%d %H:%M:%S',
+                        format='%(asctime)s %(levelname)s P%(process)d T%(thread)d %(filename)s L%(lineno)d %(funcName)s() - %(message)s %(relativeCreated)d ms')
+
     s = " Welcome to Telescope Planner! "
     line = len(s) * '='
-    print(f'\n{line}\n{s}\n{line}')  # DEBUG
+    print(f'\n{line}\n{s}\n{line}')
 
     # location, source = get_location()
     location, source = DEFAULT_LOCATION, "DEBUG method"
@@ -54,10 +62,10 @@ def main():
                       'altitude': altitude,
                       'min_alt': 0.0,
                       'max_alt': 90,
-                      'min_az': None,
-                      'max_az': None,
+                      'min_az': 0.0,
+                      'max_az': 360.0,
                       'constellation': None,  # E.g. 'Virgo', 'Leo'
-                      'only_kind': None,  # E.g. 'Galaxy', 'Nebula'…
+                      'only_kind': 'Star',  # E.g. 'Galaxy', 'Nebula'…
                       # ~14.5 for the average 8-10inch telescope (DEFAULT_MIN_MAG)
                       # ~6 for naked eye with little light pollution (NAKED_EYE_MAG):
                       'min_apparent_mag': DEFAULT_MIN_MAG,
@@ -67,12 +75,12 @@ def main():
                       'limit': None,
                       }
 
-    from pprint import pprint
-    pprint(session_params)
+    logging.debug(pformat(session_params))
+
+    logging.debug("New session")
 
     session = Session(**session_params)
-
-    # session.log_visible() # DEBUG
+    logging.debug("Finalized Session initialization. Starting report generation.")
     print('Here are some interesting objects up in the sky right now:')
     print('\n  Solar system:'.upper())
 
@@ -80,11 +88,12 @@ def main():
         for obj in session.objects_visible_now.planets:
             obj.update_coords()
             # print(obj.name, obj.alt, obj.az, obj.distance)
-            print(f'   • {obj.name.ljust(17)} Alt: {obj.alt.degrees:8.4f} Az: {obj.az.degrees:8.4f}, D: {obj.distance.au:15.1f}au - {obj.kind} in {obj.constellation}')
+            print(f'   • {obj.name.ljust(17)} Alt: {obj.alt.degrees:8.4f} Az: {obj.az.degrees:8.4f}, D: {obj.distance.au:15.1f}au - {obj.kind}')
     else:
         print('[Nothing to show here]')
 
     print('\n  Deep space objects:'.upper())
+    logging.debug("Starting deep space report generation.")
     if session.objects_visible_now.deepspace:
         for obj in session.objects_visible_now.deepspace:
             obj.update_coords()
@@ -95,6 +104,7 @@ def main():
     else:
         print('   • [Nothing to show here]')
 
+    logging.debug("Finalized report presentation.")
     print('\n')
 
 

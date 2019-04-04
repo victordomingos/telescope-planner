@@ -151,12 +151,6 @@ def get_dso_list(catalog=None, kind=None, constellation=None, uptovmag=None, lim
             if obj.getType() != "Duplicated record"]
 
 
-# Define a rectangular constraint using the location alt/az, using decimal degrees:
-min_alt = .0
-max_alt = 90.0
-min_az = .0
-max_az = 360.0
-
 
 """
 bottom_left_star =
@@ -179,20 +173,24 @@ here = earth + api.Topos(latitude=f'{cur_place.latitude} N',
 
 t = ts.now()
 
-dir = here.at(t).from_altaz(alt_degrees=41.1, az_degrees=180)
-ra, dec, distance = dir.radec()
+# Define a rectangular constraint using the location alt/az, using decimal degrees:
+#min_alt = .0
+#max_alt = 90.0
+#min_az = .0
+#max_az = 360.0
 
-print("RA:", ra)
-print("DEC:", dec)
-
-
+min_alt = 10.0
+max_alt = 70.0
+min_az = 90.0
+max_az = 120.0
 
 # Define a rectangle constraint using ra/dec for current location/datetime:
-min_alt = min_alt
-max_alt = max_alt
-min_az = min_az
-max_az = max_az
-
+bottom_left = here.at(t).from_altaz(alt_degrees=min_alt, az_degrees=min_az)
+top_right = here.at(t).from_altaz(alt_degrees=max_alt, az_degrees=max_az)
+bl_ra, bl_dec, _= bottom_left.radec()
+tr_ra, tr_dec, _= top_right.radec()
+print("Bottom Left -  RA:", bl_ra, "DEC:", bl_dec)
+print("Top Right   -  RA:", tr_ra, "DEC:", tr_dec)
 
 
 
