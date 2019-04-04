@@ -175,7 +175,7 @@ class DeepSpaceObserver(SpaceObserver):
     def update_coords(self):
         self.star_astro_now = self.session.here.at(self.session.ts.now()).observe(self.star)
         self.apparent = self.astrometric.apparent()
-        self.alt, self.az, self.distance = self.apparent.altaz('standard')
+        self.alt, self.az, self.distance = self.apparent.altaz('standard') # NOTE: distance has no meaningful value here TODO
 
     def get_description(self):
         pass

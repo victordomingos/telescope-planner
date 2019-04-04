@@ -40,20 +40,17 @@ SOLAR_SYSTEM = [
     'URANUS BARYCENTER', 'SATURN BARYCENTER', 'NEPTUNE BARYCENTER',
     'PLUTO BARYCENTER']
 
-OUR_TOP_LIST_PLANETS = ['mercury', 'venus', 'moon', 'mars',
-                        'JUPITER BARYCENTER', 'URANUS BARYCENTER',
-                        'NEPTUNE BARYCENTER', ]
+OUR_TOP_LIST_PLANETS = ['moon', 'mars', 'JUPITER BARYCENTER']
 
 MESSIER_LIST = ['M' + str(i) for i in range(1, 111)]
 
-# TODO: See if we can add Pleiades here.
 OUR_TOP_LIST_DEEPSPACE = [
     'NGC104', 'NGC224', 'NGC253', 'NGC598', 'NGC869', 'NGC884', 'NGC1976',
     'NGC2070', 'NGC3293', 'NGC3372', 'NGC4594', 'NGC5128', 'NGC5139',
     'NGC5236', 'NGC6121', 'NGC6205', 'NGC6405', 'NGC6514', 'NGC6533',
     'NGC6611', 'NGC6618', 'NGC6656', 'NGC6720', 'NGC6853']
 
-CONSTELLATIONS_LATIN_FROM_ABREV = {
+CONSTELLATIONS_LATIN_FROM_ABBREV = {
     'And': 'Andromeda',
     'Ant': 'Antlia',
     'Aps': 'Apus',
@@ -146,7 +143,7 @@ CONSTELLATIONS_LATIN_FROM_ABREV = {
     'Vul': 'Vulpecula',
 }
 
-CONSTELLATIONS_ABREV_FROM_LATIN = {v: k for k, v in CONSTELLATIONS_LATIN_FROM_ABREV.items()}
+CONSTELLATIONS_ABBREV_FROM_LATIN = {v: k for k, v in CONSTELLATIONS_LATIN_FROM_ABBREV.items()}
 
 # Used by default, when there are no location services available
 DEFAULT_LOCATION = SimpleNamespace(**{

@@ -5,8 +5,7 @@ from pyongc.ongc import listObjects
 from skyfield.api import Loader, Topos
 
 from telescope_planner.constants import DEFAULT_LOCATION, SOLAR_SYSTEM
-from telescope_planner.constants import ONGC_CATALOGS_ABREVS_FROM_NAMES, CONSTELLATIONS_ABREV_FROM_LATIN, \
-    CONSTELLATIONS_LATIN_FROM_ABREV
+from telescope_planner.constants import ONGC_CATALOGS_ABREVS_FROM_NAMES, CONSTELLATIONS_ABBREV_FROM_LATIN
 from telescope_planner.constants import ONGC_TYPES_ABREVS_FROM_NAMES
 from telescope_planner.geocode import get_location
 from telescope_planner.observers import PlanetObserver, DeepSpaceObserver
@@ -30,8 +29,8 @@ def get_dso_list(catalog=None, kind=None, constellation=None, uptovmag=None, lim
     if (kind is not None) and (kind in ONGC_TYPES_ABREVS_FROM_NAMES.keys()):
         params.update({'type': ONGC_TYPES_ABREVS_FROM_NAMES[kind]})
 
-    if (constellation is not None) and (constellation in CONSTELLATIONS_ABREV_FROM_LATIN.keys()):
-        params.update({'constellation': CONSTELLATIONS_ABREV_FROM_LATIN[constellation]})
+    if (constellation is not None) and (constellation in CONSTELLATIONS_ABBREV_FROM_LATIN.keys()):
+        params.update({'constellation': CONSTELLATIONS_ABBREV_FROM_LATIN[constellation]})
 
     if uptovmag is not None and is_float(uptovmag):
         params.update({'uptovmag': float(uptovmag)})
@@ -88,7 +87,9 @@ class Session:
         load = Loader(DATA_FOLDER)
         self.planets = load('de421.bsp')
         self.earth = self.planets['earth']
-        self.here = self.earth + Topos(f'{self.latitude} N', f'{self.longitude} E')
+        self.here = self.earth + Topos(latitude=f'{self.latitude} N',
+                                       longitude=f'{self.longitude} E',
+                                       elevation_m=self.altitude)
 
         self.update_user_location(self.latitude, self.longitude)
         self.deepspace_selection = []

@@ -13,9 +13,9 @@ from types import SimpleNamespace
 from skyfield.api import Loader
 from pytz import timezone
 
-from telescope_planner.constants import DEFAULT_LOCATION, OUR_TOP_LIST_PLANETS, OUR_TOP_LIST_DEEPSPACE, \
-    CONSTELLATIONS_LATIN_FROM_ABREV
-from telescope_planner.settings import DATA_FOLDER
+from telescope_planner.constants import OUR_TOP_LIST_PLANETS, OUR_TOP_LIST_DEEPSPACE
+from telescope_planner.constants import DEFAULT_LOCATION, CONSTELLATIONS_LATIN_FROM_ABBREV
+from telescope_planner.settings import DATA_FOLDER, DEFAULT_MIN_MAG, NAKED_EYE_MAG
 from telescope_planner.geocode import get_location
 from telescope_planner.session import Session
 
@@ -23,8 +23,8 @@ from telescope_planner.session import Session
 def main():
     s = " Welcome to Telescope Planner! "
     line = len(s) * '='
-    s = '\n' + line + '\n' + s + '\n' + line
-    print(s)  # DEBUG
+    print(f'\n{line}\n{s}\n{line}')  # DEBUG
+
     # location, source = get_location()
     location, source = DEFAULT_LOCATION, "DEBUG method"
     load = Loader(DATA_FOLDER)
@@ -38,8 +38,10 @@ def main():
     print(f'  {location.city}, {location.country}')
     if location.altitude is None:
         print(f'  Alt.: <undetermined>')
+        altitude = '0'
     else:
         print(f'  Alt.: {location.altitude:.0f}m\n')
+        altitude = location.altitude
 
     # TODO: The sources variable can be initialized with a list of Messier IDs, for instance
     sources = SimpleNamespace(**{'planets': OUR_TOP_LIST_PLANETS,
@@ -49,17 +51,20 @@ def main():
                       'end': now,
                       'latitude': location.latitude,
                       'longitude': location.longitude,
-                      'altitude': location.altitude,
+                      'altitude': altitude,
                       'min_alt': 0.0,
                       'max_alt': 90,
                       'min_az': None,
                       'max_az': None,
-                      'constellation': None,  # E.g. 'Virgo'
-                      'only_kind': 'Star',  # E.g. 'Galaxy'
-                      'min_apparent_mag': None,
-                      'only_from_catalog': 'NGC',  # NGC, IC, or Messier
-                      'only_these_sources': None,  # A dictionary of the top lists, from constants
-                      'limit': 100, # None for no limit, an integer to limit the number of results, for faster completion.
+                      'constellation': None,  # E.g. 'Virgo', 'Leo'
+                      'only_kind': None,  # E.g. 'Galaxy', 'Nebula'…
+                      # ~14.5 for the average 8-10inch telescope (DEFAULT_MIN_MAG)
+                      # ~6 for naked eye with little light pollution (NAKED_EYE_MAG):
+                      'min_apparent_mag': DEFAULT_MIN_MAG,
+                      'only_from_catalog': None,  # NGC, IC, or Messier
+                      'only_these_sources': None,  # A dictionary of the top lists, from module constants
+                      # None for no limit, an integer to limit the number of results, for faster completion:
+                      'limit': None,
                       }
 
     from pprint import pprint
@@ -84,13 +89,14 @@ def main():
         for obj in session.objects_visible_now.deepspace:
             obj.update_coords()
             # print(obj.name, obj.alt, obj.az, obj.distance)
-            print(f'   • {obj.name.ljust(17)}    Alt: {obj.alt.degrees:8.4f} Az: {obj.az.degrees:8.4f}, D: {obj.distance} - {obj.kind} in {CONSTELLATIONS_LATIN_FROM_ABREV[obj.constellation]}')
+            print(f'   • {obj.name.ljust(17)}    Alt: {obj.alt.degrees:8.4f} Az: {obj.az.degrees:8.4f} - {obj.kind} in {CONSTELLATIONS_LATIN_FROM_ABBREV[obj.constellation]}')
         print('\n  ', len(session.objects_visible_now.deepspace), "objects visible from a total of",
               len(session.deepspace_selection), "objects analyzed.")
     else:
         print('   • [Nothing to show here]')
 
     print('\n')
+
 
 if __name__ == "__main__":
     main()
