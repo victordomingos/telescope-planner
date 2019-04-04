@@ -19,12 +19,10 @@ else:
     print(f'  Alt.: {cur_place.altitude:.0f}m\n')
     altitude = cur_place.altitude
 
-here = earth + Topos(latitude=f'{cur_place.latitude} N', longitude=f'{cur_place.longitude} E', elevation_m=cur_place.altitude)
+here = earth + Topos(latitude=f'{cur_place.latitude} N', longitude=f'{cur_place.longitude} E',
+                     elevation_m=cur_place.altitude)
 
 star_names = ['NGC' + str(i) for i in range(1, 7001)]
-
-
-
 
 """
 print('Phase 1')
@@ -151,15 +149,10 @@ def get_dso_list(catalog=None, kind=None, constellation=None, uptovmag=None, lim
             if obj.getType() != "Duplicated record"]
 
 
-
 """
 bottom_left_star =
 top_right_star =
 """
-
-
-
-
 
 from skyfield import api
 
@@ -174,28 +167,29 @@ here = earth + api.Topos(latitude=f'{cur_place.latitude} N',
 t = ts.now()
 
 # Define a rectangular constraint using the location alt/az, using decimal degrees:
-#min_alt = .0
-#max_alt = 90.0
-#min_az = .0
-#max_az = 360.0
+# min_alt = .0
+# max_alt = 90.0
+# min_az = .0
+# max_az = 360.0
 
-min_alt = 10.0
-max_alt = 70.0
-min_az = 90.0
-max_az = 120.0
-
-# Define a rectangle constraint using ra/dec for current location/datetime:
-bottom_left = here.at(t).from_altaz(alt_degrees=min_alt, az_degrees=min_az)
-top_right = here.at(t).from_altaz(alt_degrees=max_alt, az_degrees=max_az)
-bl_ra, bl_dec, _= bottom_left.radec()
-tr_ra, tr_dec, _= top_right.radec()
-print("Bottom Left -  RA:", bl_ra, "DEC:", bl_dec)
-print("Top Right   -  RA:", tr_ra, "DEC:", tr_dec)
+# Acamar / sol
+min_alt = 7.95
+max_alt = 40.5
+min_az = 185.95
+max_az = 234.0
 
 
+def altaz2radec(location=None, moment=None, min_alt=0.0, max_alt=90.0, min_az=0.0, max_az=360.0):
+    """ Define a rectangle constraint using ra/dec for current location/datetime """
+    bottom_left = location.at(moment).from_altaz(alt_degrees=min_alt, az_degrees=min_az)
+    top_right = location.at(moment).from_altaz(alt_degrees=max_alt, az_degrees=max_az)
+    bl_ra, bl_dec, _ = bottom_left.radec()
+    tr_ra, tr_dec, _ = top_right.radec()
+    print("Bottom Left -  RA:", bl_ra, "DEC:", bl_dec)  # Acamar 2h58m57s / -40°13'52"
+    print("Top Right   -  RA:", tr_ra, "DEC:", tr_dec)  # Sol 00h53m37s / 5°44'30"
 
 
-
+altaz2radec(location=here, moment=t, min_alt=7.95, max_alt=40.5, min_az=185.95, max_az=234.0)
 """
 for name in star_names:
     try:
