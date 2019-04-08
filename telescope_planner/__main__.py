@@ -65,15 +65,15 @@ def main():
                       'max_alt': 90.0,
                       'min_az': 0.0,
                       'max_az': 360.0,
-                      'constellation': None,  # E.g. 'Virgo', 'Leo'
-                      'only_kind': 'Star',  # E.g. 'Galaxy', 'Nebula'…
+                      'constellation': 'Peg',  # E.g. 'Virgo', 'Leo'
+                      'only_kind': None,  # E.g. 'Galaxy', 'Nebula'…
                       # ~14.5 for the average 8-10inch telescope (DEFAULT_MIN_MAG)
                       # ~6 for naked eye with little light pollution (NAKED_EYE_MAG):
                       'min_apparent_mag': DEFAULT_MIN_MAG,
                       'only_from_catalog': None,  # NGC, IC, or Messier
                       'only_these_sources': None,  # A dictionary of the top lists, from module constants
                       # None for no limit, an integer to limit the number of results, for faster completion:
-                      'limit': None,
+                      'limit': 100,
                       }
 
     logging.debug(pformat(session_params))
